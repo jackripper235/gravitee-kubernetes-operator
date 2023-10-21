@@ -227,6 +227,7 @@ var _ = SynchronizedAfterSuite(func() {
 		client.InNamespace(namespace)), timeout/10, 1*time.Second).Should(Succeed())
 	Expect(k8sClient.DeleteAllOf(ctx, &gio.ApiResource{}, client.InNamespace(namespace))).To(Succeed())
 	Expect(k8sClient.Delete(ctx, template404())).Should(Succeed())
+	Expect(k8sClient.Delete(ctx, pemRegistry())).Should(Succeed())
 	gexec.KillAndWait(5 * time.Second)
 }, func() {
 	// NOSONAR ignore this noop func
@@ -277,6 +278,19 @@ func template404() *v1.ConfigMap {
 		Data: map[string]string{
 			"content":     `{ "message": "not-found-test" }`,
 			"contentType": "application/json",
+		},
+	}
+}
+
+func pemRegistry() *v1.ConfigMap {
+	return &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pem-registry",
+			Namespace: namespace,
+			Labels: map[string]string{
+				keys.GraviteeComponentLabel: keys.GraviteePemRegistryLabel,
+				keys.IngressClassAnnotation: keys.IngressClassAnnotationValue,
+			},
 		},
 	}
 }
